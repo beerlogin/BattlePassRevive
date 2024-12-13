@@ -1,0 +1,8 @@
+org\vaylorm\battlePassRevive\quests\ZombieQuest.class
+org\vaylorm\battlePassRevive\quests\Quest.class
+org\vaylorm\battlePassRevive\commands\BattlePassCommand.class
+org\vaylorm\battlePassRevive\BattlePassRevive.class
+org\vaylorm\battlePassRevive\storage\QuestStorage.class
+org\vaylorm\battlePassRevive\listeners\QuestListener.class
+org\vaylorm\battlePassRevive\quests\WheatQuest.class
+org\vaylorm\battlePassRevive\managers\QuestManager.class

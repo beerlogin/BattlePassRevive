@@ -1,0 +1,18 @@
+name: BattlePassRevive
+version: '1.0-SNAPSHOT'
+main: org.vaylorm.battlePassRevive.BattlePassRevive
+api-version: '1.20'
+commands:
+  battlepass:
+    description: Основная команда BattlePass
+    aliases:
+      - bp
+      - quests
+    usage: |
+      §c/battlepass - Показать помощь
+      §c/battlepass restart <quest_id> - Перезапустить квест
+    permission: battlepass.admin
+permissions:
+  battlepass.admin:
+    description: Доступ к админским командам BattlePass
+    default: op
