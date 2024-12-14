@@ -36,6 +36,7 @@ public class ZombieQuest extends Quest {
             // Показываем прогресс каждые 10%
             int progressPercentage = (newProgress * 100) / targetProgress;
             if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
+                if (progressPercentage == 100) return;
                 player.sendMessage("");
                 player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
                 player.sendMessage("");
