@@ -19,7 +19,10 @@ public class WheatQuest extends Quest {
 
     @EventHandler
     public void onWheatBreak(BlockBreakEvent event) {
-        if (event.getBlock().getType() == Material.WHEAT) {
+        // Проверяем, что блок является пшеницей и она полностью выросла (age = 7)
+        if (event.getBlock().getType() == Material.WHEAT && 
+            ((org.bukkit.block.data.Ageable) event.getBlock().getBlockData()).getAge() == 
+            ((org.bukkit.block.data.Ageable) event.getBlock().getBlockData()).getMaximumAge()) {
             handleProgress(event.getPlayer());
         }
     }
