@@ -37,14 +37,14 @@ public class WheatQuest extends Quest {
             if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
                 if (progressPercentage == 100) return;
                 player.sendMessage("");
-                player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
+                player.sendMessage(ChatColor.WHITE + "❄ ═══════════════════ ❄");
                 player.sendMessage("");
                 player.sendMessage(ChatColor.GOLD + "   ⭐ Прогресс квеста ⭐");
                 player.sendMessage(ChatColor.YELLOW + "   Собрано пшеницы: " + 
                     ChatColor.WHITE + progressPercentage + "% " +
                     ChatColor.GRAY + "(" + newProgress + "/" + targetProgress + ")");
                 player.sendMessage("");
-                player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
+                player.sendMessage(ChatColor.WHITE + "❄ ═══════════════════ ❄");
                 player.sendMessage("");
                 
                 // Сохраняем прогресс при достижении каждых 10%
