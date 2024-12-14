@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
+import org.vaylorm.battlePassRevive.managers.QuestManager;
 
 public class ZombieQuest extends Quest {
     private Player lastPlayer;
@@ -45,6 +46,9 @@ public class ZombieQuest extends Quest {
                 player.sendMessage("");
                 player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
                 player.sendMessage("");
+                
+                // Сохраняем прогресс при достижении каждых 10%
+                QuestManager.saveQuestProgress(player);
             }
         }
     }
@@ -76,7 +80,7 @@ public class ZombieQuest extends Quest {
                 lastPlayer.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, lastPlayer.getLocation().add(0, i * 0.5, 0), 10, 0.5, 0.1, 0.5, 0.1);
             }
 
-            // Воспроизводим звук получения награды
+            // Воспроизводим звук полу��ения награды
             lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
         }
     }

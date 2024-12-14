@@ -14,14 +14,16 @@ import java.util.UUID;
 public class QuestManager {
     @SuppressWarnings("unused")
     private final BattlePassRevive plugin;
-    private final QuestStorage storage;
+    private static QuestStorage storage;
     private final Map<UUID, Map<String, Quest>> playerQuests;
     private final ZombieQuest zombieQuest;
     private final WheatQuest wheatQuest;
+    private static QuestManager instance;
 
-    public QuestManager(BattlePassRevive plugin, QuestStorage storage) {
+    public QuestManager(BattlePassRevive plugin, QuestStorage questStorage) {
+        instance = this;
         this.plugin = plugin;
-        this.storage = storage;
+        QuestManager.storage = questStorage;
         this.playerQuests = new HashMap<>();
         this.zombieQuest = new ZombieQuest();
         this.wheatQuest = new WheatQuest();
@@ -29,6 +31,10 @@ public class QuestManager {
         // Регистрация слушателей
         plugin.getServer().getPluginManager().registerEvents(zombieQuest, plugin);
         plugin.getServer().getPluginManager().registerEvents(wheatQuest, plugin);
+    }
+
+    private static QuestManager getInstance() {
+        return instance;
     }
 
     public void initializePlayerQuests(Player player) {
@@ -85,6 +91,15 @@ public class QuestManager {
             Quest quest = quests.get(questId);
             quest.resetProgress();
             storage.savePlayerQuests(player, quests);
+        }
+    }
+
+    public static void saveQuestProgress(Player player) {
+        if (storage != null) {
+            Map<String, Quest> quests = getInstance().playerQuests.get(player.getUniqueId());
+            if (quests != null) {
+                storage.savePlayerQuests(player, quests);
+            }
         }
     }
 } 

@@ -185,23 +185,45 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
     }
 
     private void showAvailableQuests(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== Доступные квесты ===");
-        player.sendMessage(ChatColor.YELLOW + "Зомби квест: " + ChatColor.WHITE + "Убейте 10 зомби");
-        player.sendMessage(ChatColor.YELLOW + "Пшеничный квест: " + ChatColor.WHITE + "Соберите 1000 пшеницы");
-        
-        // Показываем статус каждого квеста
         Quest zombieQuest = questManager.getQuest(player, "zombie");
         Quest wheatQuest = questManager.getQuest(player, "wheat");
+
+        // Проверяем, выполнены ли оба квеста
+        if ((zombieQuest != null && zombieQuest.isCompleted()) && 
+            (wheatQuest != null && wheatQuest.isCompleted())) {
+            player.sendMessage(ChatColor.GREEN + "❄ ═══ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══ ❄");
+            player.sendMessage("");
+            player.sendMessage(ChatColor.YELLOW + "Все квесты уже завершены!");
+            player.sendMessage("");
+            player.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════ ❄");
+            return;
+        }
+
+        player.sendMessage(ChatColor.GREEN + "❄ ═══ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══ ❄");
+        player.sendMessage("");
         
-        if (zombieQuest != null) {
-            String status = getQuestStatus(zombieQuest);
-            player.sendMessage(ChatColor.YELLOW + "Статус зомби квеста: " + status);
+        // Показываем только невыполненные квесты
+        if (zombieQuest == null || !zombieQuest.isCompleted()) {
+            player.sendMessage(ChatColor.RED + "🧟 " + ChatColor.YELLOW + "Охота на Снежных Зомби: " + 
+                ChatColor.WHITE + "Победите 10 зомби в снежную ночь");
+            if (zombieQuest != null) {
+                String status = getQuestStatus(zombieQuest);
+                player.sendMessage(ChatColor.RED + "☃ " + ChatColor.YELLOW + "Прогресс охоты на зомби: " + status);
+            }
+            player.sendMessage("");
         }
         
-        if (wheatQuest != null) {
-            String status = getQuestStatus(wheatQuest);
-            player.sendMessage(ChatColor.YELLOW + "Статус пшеничного квеста: " + status);
+        if (wheatQuest == null || !wheatQuest.isCompleted()) {
+            player.sendMessage(ChatColor.RED + "🌾 " + ChatColor.YELLOW + "Морозостойкая Пшеница: " + 
+                ChatColor.WHITE + "Соберите 1000 пшеницы в зимнюю стужу");
+            if (wheatQuest != null) {
+                String status = getQuestStatus(wheatQuest);
+                player.sendMessage(ChatColor.RED + "❄ " + ChatColor.YELLOW + "Прогресс сбора пшеницы: " + status);
+            }
+            player.sendMessage("");
         }
+        
+        player.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════ ❄");
     }
 
     private String getQuestStatus(Quest quest) {

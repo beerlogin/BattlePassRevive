@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.ChatColor;
+import org.vaylorm.battlePassRevive.managers.QuestManager;
 
 public class WheatQuest extends Quest {
     private Player lastPlayer;
@@ -44,6 +45,9 @@ public class WheatQuest extends Quest {
                 player.sendMessage("");
                 player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
                 player.sendMessage("");
+                
+                // Сохраняем прогресс при достижении каждых 10%
+                QuestManager.saveQuestProgress(player);
             }
         }
     }
