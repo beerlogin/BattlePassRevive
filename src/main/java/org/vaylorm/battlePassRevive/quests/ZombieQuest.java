@@ -12,7 +12,7 @@ import org.vaylorm.battlePassRevive.managers.QuestManager;
 
 public class ZombieQuest extends Quest {
     private Player lastPlayer;
-    private int lastProgress;
+    private int lastProgress = 0;
 
     public ZombieQuest() {
         super("zombie_quest", 10);
@@ -35,6 +35,9 @@ public class ZombieQuest extends Quest {
 
             // Показываем прогресс каждые 10%
             int progressPercentage = (newProgress * 100) / targetProgress;
+            if (progressPercentage == lastProgress) return;
+            if (lastProgress == 0) lastProgress = progressPercentage;
+
             if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
                 if (progressPercentage == 100) return;
                 player.sendMessage("");

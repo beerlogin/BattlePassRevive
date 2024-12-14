@@ -11,7 +11,7 @@ import org.vaylorm.battlePassRevive.managers.QuestManager;
 
 public class WheatQuest extends Quest {
     private Player lastPlayer;
-    private int lastProgress;
+    private int lastProgress = 0;
 
     public WheatQuest() {
         super("wheat_quest", 1000);
@@ -33,10 +33,12 @@ public class WheatQuest extends Quest {
             this.lastPlayer = player;
             int newProgress = getCurrentProgress() + 1;
             setCurrentProgress(newProgress);
-            lastProgress = newProgress;
+
+            int progressPercentage = (newProgress * 100) / targetProgress;
+            if (progressPercentage == lastProgress) return;
+            if (lastProgress == 0) lastProgress = progressPercentage;
 
             // Показываем прогресс каждые 10%
-            int progressPercentage = (newProgress * 100) / targetProgress;
             if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
                 if (progressPercentage == 100) return;
                 player.sendMessage("");
