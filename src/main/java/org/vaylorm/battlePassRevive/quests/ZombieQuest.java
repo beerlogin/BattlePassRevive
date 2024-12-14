@@ -84,7 +84,7 @@ public class ZombieQuest extends Quest {
                 lastPlayer.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, lastPlayer.getLocation().add(0, i * 0.5, 0), 10, 0.5, 0.1, 0.5, 0.1);
             }
 
-            // Воспроизводим звук полу��ения награды
+            // Воспроизводим звук получения награды
             lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
         }
     }

@@ -164,7 +164,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player) {
-        player.sendMessage(ChatColor.GREEN + "❄ ═══ " + ChatColor.RED + "Новогодний BattlePass" + ChatColor.GREEN + " ═══ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодний BattlePass" + ChatColor.GREEN + " ═════════ ❄");
         player.sendMessage("");
         player.sendMessage(ChatColor.RED + "☃ " + ChatColor.YELLOW + "/bp help " + 
             ChatColor.WHITE + "- Показать список новогодних команд");
@@ -181,7 +181,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 ChatColor.WHITE + "- Установить прогресс квеста");
         }
         player.sendMessage("");
-        player.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════════════════════════════ ❄");
     }
 
     private void showAvailableQuests(Player player) {
@@ -191,15 +191,15 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         // Проверяем, выполнены ли оба квеста
         if ((zombieQuest != null && zombieQuest.isCompleted()) && 
             (wheatQuest != null && wheatQuest.isCompleted())) {
-            player.sendMessage(ChatColor.GREEN + "❄ ═══ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══ ❄");
+            player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═════════ ❄");
             player.sendMessage("");
             player.sendMessage(ChatColor.YELLOW + "Все квесты уже завершены!");
             player.sendMessage("");
-            player.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════ ❄");
+            player.sendMessage(ChatColor.GREEN + "❄ ═════════════════════════════════ ❄");
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "❄ ═══ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═════════ ❄");
         player.sendMessage("");
         
         // Показываем только невыполненные квесты
@@ -223,7 +223,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             player.sendMessage("");
         }
         
-        player.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════════════════════════════ ❄");
     }
 
     private String getQuestStatus(Quest quest) {
