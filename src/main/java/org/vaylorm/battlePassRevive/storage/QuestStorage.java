@@ -29,11 +29,11 @@ public class QuestStorage {
         if (!questFile.exists()) {
             try {
                 questFile.createNewFile();
-                // Создаем базовую структуру
-                questConfig = new YamlConfiguration();
+                questConfig = YamlConfiguration.loadConfiguration(questFile);
                 questConfig.createSection("players");
                 questConfig.save(questFile);
             } catch (IOException e) {
+                plugin.getLogger().severe("Не удалось создать файл quests.yml: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -70,7 +70,13 @@ public class QuestStorage {
             String questPath = playerPath + "." + quest.getQuestId();
             questConfig.set(questPath + ".progress", quest.getCurrentProgress());
             questConfig.set(questPath + ".active", quest.isActive());
+            questConfig.set(questPath + ".completed", quest.isCompleted());
         }
-        saveData();
+        try {
+            questConfig.save(questFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Не удалось сохранить прогресс в quests.yml: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 } 

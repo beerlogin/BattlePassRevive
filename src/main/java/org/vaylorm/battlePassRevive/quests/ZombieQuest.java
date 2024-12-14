@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 
 public class ZombieQuest extends Quest {
     private Player lastPlayer;
+    private int lastProgress;
 
     public ZombieQuest() {
         super("zombie_quest", 10);
@@ -27,7 +28,24 @@ public class ZombieQuest extends Quest {
     public void handleProgress(Player player) {
         if (isActive && !isCompleted) {
             this.lastPlayer = player;
-            setCurrentProgress(getCurrentProgress() + 1);
+            int newProgress = getCurrentProgress() + 1;
+            setCurrentProgress(newProgress);
+            lastProgress = newProgress;
+
+            // Показываем прогресс каждые 10%
+            int progressPercentage = (newProgress * 100) / targetProgress;
+            if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
+                player.sendMessage("");
+                player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
+                player.sendMessage("");
+                player.sendMessage(ChatColor.GOLD + "   ⭐ Прогресс квеста ⭐");
+                player.sendMessage(ChatColor.YELLOW + "   Убито зомби: " + 
+                    ChatColor.WHITE + progressPercentage + "% " +
+                    ChatColor.GRAY + "(" + newProgress + "/" + targetProgress + ")");
+                player.sendMessage("");
+                player.sendMessage(ChatColor.WHITE + "⚜ ═══════════════════ ⚜");
+                player.sendMessage("");
+            }
         }
     }
 

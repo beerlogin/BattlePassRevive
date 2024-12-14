@@ -30,6 +30,13 @@ public final class BattlePassRevive extends JavaPlugin {
         BattlePassCommand battlePassCommand = new BattlePassCommand(questManager);
         getCommand("battlepass").setExecutor(battlePassCommand);
         getCommand("battlepass").setTabCompleter(battlePassCommand);
+        
+        // Автосохранение каждые 5 минут
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            if (questStorage != null) {
+                questStorage.saveData();
+            }
+        }, 6000L, 6000L); // 6000 тиков = 5 минут
     }
 
     @Override
