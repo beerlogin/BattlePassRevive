@@ -31,28 +31,23 @@ public class ZombieQuest extends Quest {
             this.lastPlayer = player;
             int newProgress = getCurrentProgress() + 1;
             setCurrentProgress(newProgress);
-            lastProgress = newProgress;
 
-            // Показываем прогресс каждые 10%
             int progressPercentage = (newProgress * 100) / targetProgress;
-            if (progressPercentage == lastProgress) return;
-            if (lastProgress == 0) lastProgress = progressPercentage;
-
+            
+            // Показываем прогресс каждые 10%
             if (progressPercentage % 10 == 0 && progressPercentage > 0 && progressPercentage != lastProgress) {
                 if (progressPercentage == 100) return;
                 player.sendMessage("");
                 player.sendMessage(ChatColor.WHITE + "❄ ═══════════════════ ❄");
-                player.sendMessage("");
                 player.sendMessage(ChatColor.GOLD + "   ⭐ Прогресс квеста ⭐");
                 player.sendMessage(ChatColor.YELLOW + "   Убито зомби: " + 
                     ChatColor.WHITE + progressPercentage + "% " +
                     ChatColor.GRAY + "(" + newProgress + "/" + targetProgress + ")");
                 player.sendMessage("");
-                player.sendMessage(ChatColor.WHITE + "❄ ═══════════════════ ❄");
-                player.sendMessage("");
                 
                 // Сохраняем прогресс при достижении каждых 10%
                 QuestManager.saveQuestProgress(player);
+                lastProgress = progressPercentage;
             }
         }
     }
