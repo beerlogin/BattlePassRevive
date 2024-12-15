@@ -139,6 +139,10 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             // Основные подкоманды
             completions.addAll(Arrays.asList("help", "progress", "quests", "activate", "restart"));
+            // Добавляем setprogress только для админов
+            if (sender.hasPermission("battlepass.admin")) {
+                completions.add("setprogress");
+            }
             return filterCompletions(completions, args[0]);
         }
         
@@ -149,6 +153,28 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 args[0].equalsIgnoreCase("restart")) {
                 completions.addAll(Arrays.asList("zombie", "wheat"));
                 return filterCompletions(completions, args[1]);
+            }
+            // Добавляем список онлайн игроков для setprogress
+            if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
+                Bukkit.getOnlinePlayers().forEach(player -> completions.add(player.getName()));
+                return filterCompletions(completions, args[1]);
+            }
+        }
+        
+        // Добавляем подсказки для третьего аргумента setprogress (тип квеста)
+        if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
+                completions.addAll(Arrays.asList("zombie", "wheat"));
+                return filterCompletions(completions, args[2]);
+            }
+        }
+        
+        // Добавляем подсказки для четвертого аргумента setprogress (количество)
+        if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
+                // Добавляем несколько стандартных значений для удобства
+                completions.addAll(Arrays.asList("0", "5", "10", "25", "50", "100"));
+                return filterCompletions(completions, args[3]);
             }
         }
         
@@ -205,7 +231,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         // Показываем только невыполненные квесты
         if (zombieQuest == null || !zombieQuest.isCompleted()) {
             player.sendMessage(ChatColor.RED + "🧟 " + ChatColor.YELLOW + "Охота на Снежных Зомби: " + 
-                ChatColor.WHITE + "Победите 10 зомби в снежную ночь");
+                ChatColor.WHITE + "Победите 60 зомби в снежную ночь");
             if (zombieQuest != null) {
                 String status = getQuestStatus(zombieQuest);
                 player.sendMessage(ChatColor.RED + "☃ " + ChatColor.YELLOW + "Прогресс охоты на зомби: " + status);

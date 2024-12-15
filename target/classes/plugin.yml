@@ -11,7 +11,6 @@ commands:
     usage: |
       §c/battlepass - Показать помощь
       §c/battlepass restart <quest_id> - Перезапустить квест
-    permission: battlepass.admin
 permissions:
   battlepass.admin:
     description: Доступ к админским командам BattlePass

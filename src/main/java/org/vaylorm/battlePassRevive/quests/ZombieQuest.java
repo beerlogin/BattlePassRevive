@@ -15,7 +15,7 @@ public class ZombieQuest extends Quest {
     private int lastProgress = 0;
 
     public ZombieQuest() {
-        super("zombie_quest", 10);
+        super("zombie_quest", 60);
     }
 
     @EventHandler
