@@ -20,9 +20,15 @@ public final class BattlePassRevive extends JavaPlugin {
         // Инициализация менеджера квестов
         questManager = new QuestManager(this, questStorage);
         
-        // Регистрация слушателей
+        // Создание квестов
         ZombieQuest zombieQuest = new ZombieQuest();
         WheatQuest wheatQuest = new WheatQuest();
+        
+        // Установка storage для квестов
+        zombieQuest.setStorage(questStorage);
+        wheatQuest.setStorage(questStorage);
+        
+        // Регистрация слушателей
         getServer().getPluginManager().registerEvents(zombieQuest, this);
         getServer().getPluginManager().registerEvents(wheatQuest, this);
         

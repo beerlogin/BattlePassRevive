@@ -7,14 +7,22 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 import org.vaylorm.battlePassRevive.managers.QuestManager;
 import org.vaylorm.battlePassRevive.quests.Quest;
 import org.vaylorm.battlePassRevive.storage.QuestStorage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class BattlePassCommand implements CommandExecutor, TabCompleter {
     private final QuestManager questManager;
@@ -53,7 +61,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 if (questManager.activateQuest(player, activateQuestId)) {
                     player.sendMessage(ChatColor.GREEN + "Квест успешно активирован!");
                 } else {
-                    player.sendMessage(ChatColor.RED + "Невозможно активировать квест! Возможно он уже активен или завершен.");
+                    player.sendMessage(ChatColor.RED + "Невозможно актировать квест! Возможно он уже активен или завершен.");
                 }
                 break;
 
@@ -243,6 +251,73 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 }
                 break;
 
+            case "claim":
+                List<String> pendingQuests = storage.getPendingRewards(player);
+                if (pendingQuests.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "У вас нет доступных наград!");
+                    return true;
+                }
+
+                player.sendMessage(ChatColor.GREEN + "Доступные награды:");
+                for (String questId : pendingQuests) {
+                    List<String> rewards = storage.getQuestRewards(player, questId);
+                    for (String reward : rewards) {
+                        String[] parts = reward.split(":");
+                        String type = parts[0];
+                        int amount = Integer.parseInt(parts[1]);
+                        
+                        // Создаем кликабельное сообщение
+                        TextComponent message = new TextComponent("  • ");
+                        message.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+                        
+                        TextComponent rewardText = new TextComponent(amount + "x " + type);
+                        rewardText.setColor(net.md_5.bungee.api.ChatColor.GOLD);
+                        rewardText.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bp claimreward " + questId));
+                        rewardText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                            new Text("Нажмите, чтобы получить награду!")));
+                        
+                        message.addExtra(rewardText);
+                        player.spigot().sendMessage(message);
+                    }
+                }
+                break;
+
+            case "claimreward":
+                if (args.length < 2) {
+                    player.sendMessage(ChatColor.RED + "Использование: /bp claimreward <id_квеста>");
+                    return true;
+                }
+                String questToClaim = args[1];
+                if (!questToClaim.equals("zombie_quest") && !questToClaim.equals("wheat_quest")) {
+                    player.sendMessage(ChatColor.RED + "Неверный ID квеста!");
+                    return true;
+                }
+                List<String> rewards = storage.getQuestRewards(player, questToClaim);
+                if (rewards.isEmpty()) {
+                    player.sendMessage(ChatColor.RED + "Награда не найдена!");
+                    return true;
+                }
+
+                for (String reward : rewards) {
+                    String[] parts = reward.split(":");
+                    Material material = Material.valueOf(parts[0]);
+                    int amount = Integer.parseInt(parts[1]);
+                    
+                    ItemStack item = new ItemStack(material, amount);
+                    HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+                    
+                    if (!leftover.isEmpty()) {
+                        player.getWorld().dropItemNaturally(player.getLocation(), item);
+                        player.sendMessage(ChatColor.YELLOW + "Инвентарь полон! Предметы выброшены на землю.");
+                    } else {
+                        player.sendMessage(ChatColor.GREEN + "Вы получили награду: " + amount + "x " + material.name());
+                    }
+                }
+                
+                storage.removeReward(player, questToClaim);
+                player.playSound(player.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
+                break;
+
             default:
                 sendHelp(player);
                 break;
@@ -257,7 +332,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         
         if (args.length == 1) {
             // Основные подкоманды
-            completions.addAll(Arrays.asList("help", "progress", "quests", "activate", "restart"));
+            completions.addAll(Arrays.asList("help", "progress", "quests", "activate", "restart", "claim"));
             // Добавляем админские команды
             if (sender.hasPermission("battlepass.admin")) {
                 completions.addAll(Arrays.asList("setprogress", "global", "completers"));
@@ -308,6 +383,12 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             }
         }
         
+        // Подсказки для claim
+        if (args[0].equalsIgnoreCase("claim") && args.length == 2) {
+            List<String> pendingQuests = storage.getPendingRewards((Player)sender);
+            return filterCompletions(pendingQuests, args[1]);
+        }
+        
         return completions;
     }
     
@@ -332,6 +413,8 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             ChatColor.WHITE + "- Узнать свой прогресс");
         player.sendMessage(ChatColor.RED + "🔔 " + ChatColor.YELLOW + "/bp restart <zombie/wheat> " + 
             ChatColor.WHITE + "- Перезапустить квест");
+        player.sendMessage(ChatColor.RED + "💎 " + ChatColor.YELLOW + "/bp claim " + 
+            ChatColor.WHITE + "- Посмотреть доступные награды");
         
         if (player.hasPermission("battlepass.admin")) {
             player.sendMessage("");
@@ -345,14 +428,14 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         }
         
         player.sendMessage("");
-        player.sendMessage(ChatColor.GREEN + "❄ ═════════════════��════════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════════════════════════════════════ ❄");
     }
 
     private void showAvailableQuests(Player player) {
         Quest zombieQuest = questManager.getQuest(player, "zombie");
         Quest wheatQuest = questManager.getQuest(player, "wheat");
 
-        // Проверяем, выполнены ли оба квеста
+        // Проверяем, выполнены ли оа квеста
         if ((zombieQuest != null && zombieQuest.isCompleted()) && 
             (wheatQuest != null && wheatQuest.isCompleted())) {
             player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═════════ ❄");
@@ -363,10 +446,10 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ���════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══════════ ❄");
         player.sendMessage("");
         
-        // Показываем только невыполненные квесты
+        // Показы��ем только невыполненные квесты
         if (zombieQuest == null || !zombieQuest.isCompleted()) {
             player.sendMessage(ChatColor.RED + "🧟 " + ChatColor.YELLOW + "Охота на Снежных Зомби: " + 
                 ChatColor.WHITE + "Победите 60 зомби в снежную ночь");
@@ -394,7 +477,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         if (quest.isCompleted()) {
             return ChatColor.GREEN + "Выполнен";
         } else if (quest.isActive()) {
-            return ChatColor.GOLD + "Активен " + ChatColor.WHITE + "(" + 
+            return ChatColor.GOLD + "А��тивен " + ChatColor.WHITE + "(" + 
                    quest.getCurrentProgress() + "/" + quest.getTargetProgress() + ")";
         } else {
             return ChatColor.RED + "Не активирован";

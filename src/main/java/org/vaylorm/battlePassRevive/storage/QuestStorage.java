@@ -163,4 +163,33 @@ public class QuestStorage {
     public BattlePassRevive getPlugin() {
         return plugin;
     }
+
+    public void addPendingReward(Player player, String questId, String rewardType) {
+        String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
+        List<String> rewards = questConfig.getStringList(playerPath);
+        if (!rewards.contains(rewardType)) {
+            rewards.add(rewardType);
+            questConfig.set(playerPath, rewards);
+            saveData();
+        }
+    }
+
+    public List<String> getPendingRewards(Player player) {
+        String playerPath = "players." + player.getUniqueId() + ".pending_rewards";
+        if (questConfig.getConfigurationSection(playerPath) == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(questConfig.getConfigurationSection(playerPath).getKeys(false));
+    }
+
+    public List<String> getQuestRewards(Player player, String questId) {
+        String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
+        return questConfig.getStringList(playerPath);
+    }
+
+    public void removeReward(Player player, String questId) {
+        String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
+        questConfig.set(playerPath, null);
+        saveData();
+    }
 } 

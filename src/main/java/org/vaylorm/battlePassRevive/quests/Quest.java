@@ -11,6 +11,7 @@ public abstract class Quest implements Listener {
     protected boolean isActive;
     protected boolean isCompleted;
     protected QuestStorage storage;
+    protected Player lastPlayer;
 
     public Quest(String questId, int targetProgress) {
         this.questId = questId;
@@ -37,6 +38,7 @@ public abstract class Quest implements Listener {
         if (this.currentProgress >= targetProgress && !this.isCompleted) {
             this.isCompleted = true;
             storage.getPlugin().getLogger().info("Квест " + questId + " выполнен!");
+            markAsCompleted(lastPlayer);
             giveReward();
         }
     }
@@ -67,23 +69,22 @@ public abstract class Quest implements Listener {
     }
 
     protected boolean canHandleProgress(Player player) {
-        if (storage == null || player == null) {
-            storage.getPlugin().getLogger().warning("Ошибка обработки прогресса: storage или player равны null");
+        if (player == null || !player.isOnline()) {
+            return false;
+        }
+
+        if (storage == null) {
             return false;
         }
         
         if (!storage.isQuestGloballyActive(questId)) {
             storage.getPlugin().getLogger().fine("Квест " + questId + " не активен глобально");
+            setCurrentProgress(targetProgress);
             return false;
         }
         
         if (storage.hasPlayerCompletedGlobalQuest(questId, player)) {
             storage.getPlugin().getLogger().fine("Игрок " + player.getName() + " уже выполнил квест " + questId);
-            return false;
-        }
-        
-        if (!player.isOnline()) {
-            storage.getPlugin().getLogger().warning("Попытка обработать прогресс для оффлайн игрока: " + player.getName());
             return false;
         }
         
@@ -99,4 +100,6 @@ public abstract class Quest implements Listener {
                 (player != null ? player.getName() : "null"));
         }
     }
+
+    protected abstract String getRewardType();
 } 

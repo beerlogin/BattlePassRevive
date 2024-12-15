@@ -105,4 +105,9 @@ public class WheatQuest extends Quest {
             markAsCompleted(lastPlayer);
         }
     }
+
+    @Override
+    protected String getRewardType() {
+        return "EMERALD:10"; // 10 изумрудов
+    }
 } 

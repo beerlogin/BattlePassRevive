@@ -5,12 +5,8 @@ api-version: '1.20'
 commands:
   battlepass:
     description: Основная команда BattlePass
-    aliases:
-      - bp
-      - quests
-    usage: |
-      §c/battlepass - Показать помощь
-      §c/battlepass restart <quest_id> - Перезапустить квест
+    aliases: [bp]
+    usage: /<command> [claim|claimreward|...]
 permissions:
   battlepass.admin:
     description: Доступ к админским командам BattlePass

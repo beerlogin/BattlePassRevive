@@ -83,4 +83,9 @@ public class ZombieQuest extends Quest {
             lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
         }
     }
+
+    @Override
+    protected String getRewardType() {
+        return "DIAMOND:5"; // 5 алмазов
+    }
 } 
