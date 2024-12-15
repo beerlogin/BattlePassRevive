@@ -27,7 +27,7 @@ public final class BattlePassRevive extends JavaPlugin {
         getServer().getPluginManager().registerEvents(wheatQuest, this);
         
         // Регистрация команд
-        BattlePassCommand battlePassCommand = new BattlePassCommand(questManager);
+        BattlePassCommand battlePassCommand = new BattlePassCommand(questManager, questStorage);
         getCommand("battlepass").setExecutor(battlePassCommand);
         getCommand("battlepass").setTabCompleter(battlePassCommand);
     }

@@ -9,6 +9,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.vaylorm.battlePassRevive.managers.QuestManager;
 import org.vaylorm.battlePassRevive.quests.Quest;
+import org.vaylorm.battlePassRevive.storage.QuestStorage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 
 public class BattlePassCommand implements CommandExecutor, TabCompleter {
     private final QuestManager questManager;
+    private final QuestStorage storage;
 
-    public BattlePassCommand(QuestManager questManager) {
+    public BattlePassCommand(QuestManager questManager, QuestStorage storage) {
         this.questManager = questManager;
+        this.storage = storage;
     }
 
     @Override
@@ -46,8 +49,8 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(ChatColor.RED + "Использование: /bp activate <zombie/wheat>");
                     return true;
                 }
-                String questId = args[1].toLowerCase();
-                if (questManager.activateQuest(player, questId)) {
+                String activateQuestId = args[1].toLowerCase();
+                if (questManager.activateQuest(player, activateQuestId)) {
                     player.sendMessage(ChatColor.GREEN + "Квест успешно активирован!");
                 } else {
                     player.sendMessage(ChatColor.RED + "Невозможно активировать квест! Возможно он уже активен или завершен.");
@@ -59,7 +62,12 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(ChatColor.RED + "Использование: /bp progress <zombie/wheat>");
                     return true;
                 }
-                Quest quest = questManager.getQuest(player, args[1].toLowerCase());
+                String progressQuestId = args[1].toLowerCase();
+                if (!progressQuestId.equals("zombie") && !progressQuestId.equals("wheat")) {
+                    player.sendMessage(ChatColor.RED + "Неверный ID квеста! Используйте zombie или wheat");
+                    return true;
+                }
+                Quest quest = questManager.getQuest(player, progressQuestId);
                 if (quest != null) {
                     player.sendMessage(ChatColor.GOLD + "Прогресс квеста: " + 
                         ChatColor.WHITE + quest.getCurrentProgress() + "/" + quest.getTargetProgress());
@@ -124,6 +132,117 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§aКвест " + args[1] + " был успешно перезапущен!");
                 return true;
 
+            case "global":
+                if (!sender.hasPermission("battlepass.admin")) {
+                    sender.sendMessage(ChatColor.RED + "У вас нет прав для использования этой команды!");
+                    return true;
+                }
+                if (args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "Использование: /bp global <activate/deactivate> <zombie/wheat>");
+                    return true;
+                }
+                
+                String action = args[1].toLowerCase();
+                String globalQuestId = args[2].toLowerCase();
+                
+                if (!globalQuestId.equals("zombie") && !globalQuestId.equals("wheat")) {
+                    sender.sendMessage(ChatColor.RED + "Неверный ID квеста! Используйте zombie или wheat");
+                    return true;
+                }
+                
+                switch (action) {
+                    case "activate":
+                        storage.setQuestGloballyActive(globalQuestId + "_quest", true);
+                        sender.sendMessage(ChatColor.GREEN + "Квест " + globalQuestId + " активирован глобально!");
+                        break;
+                    case "deactivate":
+                        storage.setQuestGloballyActive(globalQuestId + "_quest", false);
+                        sender.sendMessage(ChatColor.GREEN + "Квест " + globalQuestId + " деактивирован глобально!");
+                        break;
+                    default:
+                        sender.sendMessage(ChatColor.RED + "Неверное действие! Используйте activate или deactivate");
+                }
+                break;
+
+            case "completers":
+                if (!sender.hasPermission("battlepass.admin")) {
+                    sender.sendMessage(ChatColor.RED + "У вас нет прав для использования этой команды!");
+                    return true;
+                }
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "Использование: /bp completers <add/remove/clear/list> [quest_id] [player]");
+                    return true;
+                }
+
+                String completerAction = args[1].toLowerCase();
+                
+                if (args.length >= 3 && !completerAction.equals("help")) {
+                    String questId = args[2].toLowerCase();
+                    if (!questId.equals("zombie") && !questId.equals("wheat")) {
+                        sender.sendMessage(ChatColor.RED + "Неверный ID квеста! Используйте zombie или wheat");
+                        return true;
+                    }
+                }
+                
+                switch (completerAction) {
+                    case "add":
+                        if (args.length < 4) {
+                            sender.sendMessage(ChatColor.RED + "Использование: /bp completers add <zombie/wheat> <player>");
+                            return true;
+                        }
+                        String questToAdd = args[2].toLowerCase() + "_quest";
+                        Player playerToAdd = Bukkit.getPlayer(args[3]);
+                        if (playerToAdd == null) {
+                            sender.sendMessage(ChatColor.RED + "Игрок не найден!");
+                            return true;
+                        }
+                        storage.addQuestCompleter(questToAdd, playerToAdd);
+                        sender.sendMessage(ChatColor.GREEN + "Игрок " + playerToAdd.getName() + " добавлен в список выполнивших квест " + args[2]);
+                        break;
+
+                    case "remove":
+                        if (args.length < 4) {
+                            sender.sendMessage(ChatColor.RED + "Использование: /bp completers remove <zombie/wheat> <player>");
+                            return true;
+                        }
+                        String questToRemove = args[2].toLowerCase() + "_quest";
+                        String playerToRemove = args[3];
+                        storage.removeQuestCompleter(questToRemove, playerToRemove);
+                        sender.sendMessage(ChatColor.GREEN + "Игрок " + playerToRemove + " удален из списка выполнивших квест " + args[2]);
+                        break;
+
+                    case "clear":
+                        if (args.length < 3) {
+                            sender.sendMessage(ChatColor.RED + "Использование: /bp completers clear <zombie/wheat>");
+                            return true;
+                        }
+                        String questToClear = args[2].toLowerCase() + "_quest";
+                        storage.clearQuestCompleters(questToClear);
+                        sender.sendMessage(ChatColor.GREEN + "Список выполнивших квест " + args[2] + " очищен!");
+                        break;
+
+                    case "list":
+                        if (args.length < 3) {
+                            sender.sendMessage(ChatColor.RED + "Использование: /bp completers list <zombie/wheat>");
+                            return true;
+                        }
+                        String questToList = args[2].toLowerCase() + "_quest";
+                        List<String> completers = storage.getQuestCompleters(questToList);
+                        if (completers.isEmpty()) {
+                            sender.sendMessage(ChatColor.YELLOW + "Никто еще не выполнил этот квест!");
+                        } else {
+                            sender.sendMessage(ChatColor.GREEN + "Список выполнивших квест " + args[2] + ":");
+                            for (String completer : completers) {
+                                sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.WHITE + completer);
+                            }
+                        }
+                        break;
+
+                    default:
+                        sender.sendMessage(ChatColor.RED + "Неверное действие! Используйте add, remove, clear или list");
+                }
+                break;
+
             default:
                 sendHelp(player);
                 break;
@@ -139,14 +258,42 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             // Основные подкоманды
             completions.addAll(Arrays.asList("help", "progress", "quests", "activate", "restart"));
-            // Добавляем setprogress только для админов
+            // Добавляем админские команды
             if (sender.hasPermission("battlepass.admin")) {
-                completions.add("setprogress");
+                completions.addAll(Arrays.asList("setprogress", "global", "completers"));
             }
             return filterCompletions(completions, args[0]);
         }
         
-        // Добавляем подсказки для команд, требующих id квеста
+        if (sender.hasPermission("battlepass.admin")) {
+            if (args[0].equalsIgnoreCase("global") && args.length == 2) {
+                completions.addAll(Arrays.asList("activate", "deactivate"));
+                return filterCompletions(completions, args[1]);
+            }
+            
+            if (args[0].equalsIgnoreCase("global") && args.length == 3) {
+                completions.addAll(Arrays.asList("zombie", "wheat"));
+                return filterCompletions(completions, args[2]);
+            }
+            
+            if (args[0].equalsIgnoreCase("completers") && args.length == 2) {
+                completions.addAll(Arrays.asList("add", "remove", "clear", "list"));
+                return filterCompletions(completions, args[1]);
+            }
+            
+            if (args[0].equalsIgnoreCase("completers") && args.length == 3) {
+                completions.addAll(Arrays.asList("zombie", "wheat"));
+                return filterCompletions(completions, args[2]);
+            }
+            
+            if (args[0].equalsIgnoreCase("completers") && args.length == 4 && 
+                (args[1].equalsIgnoreCase("add") || args[1].equalsIgnoreCase("remove"))) {
+                Bukkit.getOnlinePlayers().forEach(player -> completions.add(player.getName()));
+                return filterCompletions(completions, args[3]);
+            }
+        }
+        
+        // Подсказки для обычных команд
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("activate") || 
                 args[0].equalsIgnoreCase("progress") ||
@@ -154,27 +301,10 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 completions.addAll(Arrays.asList("zombie", "wheat"));
                 return filterCompletions(completions, args[1]);
             }
-            // Добавляем список онлайн игроков для setprogress
+            // Подсказки для setprogress
             if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
                 Bukkit.getOnlinePlayers().forEach(player -> completions.add(player.getName()));
                 return filterCompletions(completions, args[1]);
-            }
-        }
-        
-        // Добавляем подсказки для третьего аргумента setprogress (тип квеста)
-        if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
-                completions.addAll(Arrays.asList("zombie", "wheat"));
-                return filterCompletions(completions, args[2]);
-            }
-        }
-        
-        // Добавляем подсказки для четвертого аргумента setprogress (количество)
-        if (args.length == 4) {
-            if (args[0].equalsIgnoreCase("setprogress") && sender.hasPermission("battlepass.admin")) {
-                // Добавляем несколько стандартных значений для удобства
-                completions.addAll(Arrays.asList("0", "5", "10", "25", "50", "100"));
-                return filterCompletions(completions, args[3]);
             }
         }
         
@@ -202,12 +332,20 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             ChatColor.WHITE + "- Узнать свой прогресс");
         player.sendMessage(ChatColor.RED + "🔔 " + ChatColor.YELLOW + "/bp restart <zombie/wheat> " + 
             ChatColor.WHITE + "- Перезапустить квест");
+        
         if (player.hasPermission("battlepass.admin")) {
-            player.sendMessage(ChatColor.RED + "❄ " + ChatColor.RED + "/bp setprogress <игрок> <zombie/wheat> <количество> " + 
+            player.sendMessage("");
+            player.sendMessage(ChatColor.RED + "❄ Админские команды:");
+            player.sendMessage(ChatColor.RED + "⚡ " + ChatColor.RED + "/bp setprogress <игрок> <zombie/wheat> <количество> " + 
                 ChatColor.WHITE + "- Установить прогресс квеста");
+            player.sendMessage(ChatColor.RED + "⚡ " + ChatColor.RED + "/bp global <activate/deactivate> <zombie/wheat> " + 
+                ChatColor.WHITE + "- Управление глобальными квестами");
+            player.sendMessage(ChatColor.RED + "⚡ " + ChatColor.RED + "/bp completers <add/remove/clear/list> <zombie/wheat> [player] " + 
+                ChatColor.WHITE + "- Управление списком выполнивших");
         }
+        
         player.sendMessage("");
-        player.sendMessage(ChatColor.GREEN + "❄ ══════════════════════════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════════════��════════════ ❄");
     }
 
     private void showAvailableQuests(Player player) {
@@ -225,7 +363,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═══════════ ❄");
         player.sendMessage("");
         
         // Показываем только невыполненные квесты

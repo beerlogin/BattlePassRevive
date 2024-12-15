@@ -8,6 +8,8 @@ import org.vaylorm.battlePassRevive.quests.Quest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class QuestStorage {
@@ -31,6 +33,7 @@ public class QuestStorage {
                 questFile.createNewFile();
                 questConfig = YamlConfiguration.loadConfiguration(questFile);
                 questConfig.createSection("players");
+                questConfig.createSection("active_quests");
                 questConfig.save(questFile);
             } catch (IOException e) {
                 plugin.getLogger().severe("Не удалось создать файл quests.yml: " + e.getMessage());
@@ -65,6 +68,10 @@ public class QuestStorage {
     }
 
     public void savePlayerQuests(Player player, Map<String, Quest> quests) {
+        if (player == null || quests == null) {
+            plugin.getLogger().severe("Попытка сохранить null данные");
+            return;
+        }
         String playerPath = "players." + player.getUniqueId();
         for (Quest quest : quests.values()) {
             String questPath = playerPath + "." + quest.getQuestId();
@@ -74,9 +81,86 @@ public class QuestStorage {
         }
         try {
             questConfig.save(questFile);
+            plugin.getLogger().info("Сохранен прогресс квестов для игрока " + player.getName());
         } catch (IOException e) {
-            plugin.getLogger().severe("Не удалось сохранить прогресс в quests.yml: " + e.getMessage());
+            plugin.getLogger().severe("Не удалось сохранить прогресс в quests.yml для игрока " + player.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public boolean isQuestGloballyActive(String questId) {
+        if (questId == null || (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            return false;
+        }
+        return questConfig.getBoolean("active_quests." + questId + ".active", false);
+    }
+
+    public void setQuestGloballyActive(String questId, boolean active) {
+        if (questId == null || (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            plugin.getLogger().warning("Попытка активировать неверный квест: " + questId);
+            return;
+        }
+        questConfig.set("active_quests." + questId + ".active", active);
+        saveData();
+        plugin.getLogger().info("Квест " + questId + " " + (active ? "активирован" : "деактивирован") + " глобально");
+    }
+
+    public void addQuestCompleter(String questId, Player player) {
+        if (questId == null || player == null || 
+            (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            plugin.getLogger().warning("Попытка добавить неверного игрока или квест: " + player + ", " + questId);
+            return;
+        }
+        List<String> completers = questConfig.getStringList("active_quests." + questId + ".completers");
+        if (!completers.contains(player.getName())) {
+            completers.add(player.getName());
+            questConfig.set("active_quests." + questId + ".completers", completers);
+            saveData();
+            plugin.getLogger().info("Игрок " + player.getName() + " добавлен в список выполнивших квест " + questId);
+        }
+    }
+
+    public boolean hasPlayerCompletedGlobalQuest(String questId, Player player) {
+        if (questId == null || player == null || 
+            (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            return false;
+        }
+        List<String> completers = questConfig.getStringList("active_quests." + questId + ".completers");
+        return completers.contains(player.getName());
+    }
+
+    public void removeQuestCompleter(String questId, String playerName) {
+        if (questId == null || playerName == null || playerName.isEmpty() || 
+            (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            plugin.getLogger().warning("Попытка удалить неверного игрока или квест: " + playerName + ", " + questId);
+            return;
+        }
+        List<String> completers = questConfig.getStringList("active_quests." + questId + ".completers");
+        if (completers.remove(playerName)) {
+            questConfig.set("active_quests." + questId + ".completers", completers);
+            saveData();
+            plugin.getLogger().info("Игрок " + playerName + " удален из списка выполнивших квест " + questId);
+        }
+    }
+
+    public void clearQuestCompleters(String questId) {
+        if (questId == null || (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            plugin.getLogger().warning("Попытка очистить список неверного квеста: " + questId);
+            return;
+        }
+        questConfig.set("active_quests." + questId + ".completers", new ArrayList<String>());
+        saveData();
+        plugin.getLogger().info("Список выполнивших квест " + questId + " очищен");
+    }
+
+    public List<String> getQuestCompleters(String questId) {
+        if (questId == null || (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
+            return new ArrayList<>();
+        }
+        return questConfig.getStringList("active_quests." + questId + ".completers");
+    }
+
+    public BattlePassRevive getPlugin() {
+        return plugin;
     }
 } 

@@ -19,11 +19,25 @@ public class WheatQuest extends Quest {
 
     @EventHandler
     public void onWheatBreak(BlockBreakEvent event) {
-        // Проверяем, что блок является пшеницей и она полностью выросла (age = 7)
+        if (event.isCancelled()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (player == null || !player.isOnline()) {
+            return;
+        }
+        
+        // Проверяем возможность обработки прогресса
+        if (!canHandleProgress(player)) {
+            return;
+        }
+
+        // Проверяем, что блок является пшеницей и она полностью выросла
         if (event.getBlock().getType() == Material.WHEAT && 
             ((org.bukkit.block.data.Ageable) event.getBlock().getBlockData()).getAge() == 
             ((org.bukkit.block.data.Ageable) event.getBlock().getBlockData()).getMaximumAge()) {
-            handleProgress(event.getPlayer());
+            handleProgress(player);
         }
     }
 
@@ -83,7 +97,12 @@ public class WheatQuest extends Quest {
 
 
             // Воспроизводим звук получения награды
-            lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
+            if (lastPlayer != null && lastPlayer.isOnline()) {
+                lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
+            }
+
+            // Добавляем игрока в список завершивших
+            markAsCompleted(lastPlayer);
         }
     }
 } 

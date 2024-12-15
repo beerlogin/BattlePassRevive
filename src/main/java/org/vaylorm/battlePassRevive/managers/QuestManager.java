@@ -28,6 +28,10 @@ public class QuestManager {
         this.zombieQuest = new ZombieQuest();
         this.wheatQuest = new WheatQuest();
         
+        // Устанавливаем storage для квестов
+        this.zombieQuest.setStorage(questStorage);
+        this.wheatQuest.setStorage(questStorage);
+        
         // Регистрация слушателей
         plugin.getServer().getPluginManager().registerEvents(zombieQuest, plugin);
         plugin.getServer().getPluginManager().registerEvents(wheatQuest, plugin);
@@ -45,7 +49,7 @@ public class QuestManager {
             quests.put("wheat", wheatQuest);
             playerQuests.put(playerId, quests);
             
-            // Загрузка сохраненного прогресса
+            plugin.getLogger().info("Инициализация квестов для игрока " + player.getName());
             storage.loadPlayerQuests(player, quests);
         }
     }
@@ -59,7 +63,11 @@ public class QuestManager {
             if (!quest.isActive() && !quest.isCompleted()) {
                 quest.setActive(true);
                 storage.savePlayerQuests(player, quests);
+                plugin.getLogger().info("Игрок " + player.getName() + " активировал квест " + questId);
                 return true;
+            } else {
+                plugin.getLogger().info("Игрок " + player.getName() + " не смог активировать квест " + questId + 
+                    " (Активен: " + quest.isActive() + ", Завершен: " + quest.isCompleted() + ")");
             }
         }
         return false;
@@ -91,6 +99,7 @@ public class QuestManager {
             Quest quest = quests.get(questId);
             quest.resetProgress();
             storage.savePlayerQuests(player, quests);
+            plugin.getLogger().info("Игрок " + player.getName() + " перезапустил квест " + questId);
         }
     }
 
