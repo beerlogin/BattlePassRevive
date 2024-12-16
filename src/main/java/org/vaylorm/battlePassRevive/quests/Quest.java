@@ -2,7 +2,10 @@ package org.vaylorm.battlePassRevive.quests;
 
 import org.bukkit.event.Listener;
 import org.bukkit.entity.Player;
+import org.vaylorm.battlePassRevive.managers.QuestManager;
 import org.vaylorm.battlePassRevive.storage.QuestStorage;
+import org.bukkit.ChatColor;
+import org.bukkit.Particle;
 
 public abstract class Quest implements Listener {
     protected String questId;
@@ -38,8 +41,11 @@ public abstract class Quest implements Listener {
         if (this.currentProgress >= targetProgress && !this.isCompleted) {
             this.isCompleted = true;
             storage.getPlugin().getLogger().info("Квест " + questId + " выполнен!");
-            markAsCompleted(lastPlayer);
-            giveReward();
+            if (lastPlayer != null) {
+                QuestManager.saveQuestProgress(lastPlayer);
+                markAsCompleted(lastPlayer);
+                saveReward();
+            }
         }
     }
 
@@ -60,8 +66,6 @@ public abstract class Quest implements Listener {
     }
 
     public abstract void handleProgress(Player player);
-
-    protected abstract void giveReward();
 
     public void resetProgress() {
         this.currentProgress = 0;
@@ -102,4 +106,27 @@ public abstract class Quest implements Listener {
     }
 
     protected abstract String getRewardType();
+
+    protected void saveReward() {
+        if (storage == null) {
+            return;
+        }
+        if (lastPlayer != null && lastPlayer.isOnline()) {
+            storage.addPendingReward(lastPlayer, questId, getRewardType());
+            lastPlayer.sendMessage("");
+            lastPlayer.sendMessage(ChatColor.WHITE + "❄ ═══════════════════════ ❄");
+            lastPlayer.sendMessage("");
+            lastPlayer.sendMessage(ChatColor.AQUA + "   🎄 С завершением квеста! 🎄");
+            lastPlayer.sendMessage(ChatColor.WHITE + "Используйте /bp claim чтобы получить награду");
+            lastPlayer.sendMessage("");
+            lastPlayer.sendMessage(ChatColor.WHITE + "❄ ═══════════════════════ ❄");
+            lastPlayer.sendMessage("");
+            
+            // Эффекты завершения
+            for (int i = 0; i < 3; i++) {
+                lastPlayer.getWorld().spawnParticle(Particle.TOTEM, lastPlayer.getLocation().add(0, i * 0.5, 0), 50, 0.5, 0.1, 0.5, 0.1);
+            }
+            lastPlayer.playSound(lastPlayer.getLocation(), "entity.player.levelup", 1.0f, 1.0f);
+        }
+    }
 } 

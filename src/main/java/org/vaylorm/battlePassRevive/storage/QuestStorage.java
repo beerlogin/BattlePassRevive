@@ -59,6 +59,7 @@ public class QuestStorage {
     }
 
     public void loadPlayerQuests(Player player, Map<String, Quest> quests) {
+        loadData();
         String playerPath = "players." + player.getUniqueId();
         for (Quest quest : quests.values()) {
             String questPath = playerPath + "." + quest.getQuestId();
@@ -86,12 +87,14 @@ public class QuestStorage {
             plugin.getLogger().severe("Не удалось сохранить прогресс в quests.yml для игрока " + player.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
+        loadData();
     }
 
     public boolean isQuestGloballyActive(String questId) {
         if (questId == null || (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
             return false;
         }
+        loadData();
         return questConfig.getBoolean("active_quests." + questId + ".active", false);
     }
 
@@ -101,8 +104,13 @@ public class QuestStorage {
             return;
         }
         questConfig.set("active_quests." + questId + ".active", active);
-        saveData();
-        plugin.getLogger().info("Квест " + questId + " " + (active ? "активирован" : "деактивирован") + " глобально");
+        try {
+            questConfig.save(questFile);
+            plugin.getLogger().info("Квест " + questId + " " + (active ? "активирован" : "деактивирован") + " глобально");
+        } catch (IOException e) {
+            plugin.getLogger().severe("Ошибка при сохранении состояния квеста: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void addQuestCompleter(String questId, Player player) {
@@ -115,8 +123,13 @@ public class QuestStorage {
         if (!completers.contains(player.getName())) {
             completers.add(player.getName());
             questConfig.set("active_quests." + questId + ".completers", completers);
-            saveData();
-            plugin.getLogger().info("Игрок " + player.getName() + " добавлен в список выполнивших квест " + questId);
+            try {
+                questConfig.save(questFile);
+                plugin.getLogger().info("Игрок " + player.getName() + " добавлен в список выполнивших квест " + questId);
+            } catch (IOException e) {
+                plugin.getLogger().severe("Ошибка при сохранении списка выполнивших: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -125,6 +138,7 @@ public class QuestStorage {
             (!questId.equals("zombie_quest") && !questId.equals("wheat_quest"))) {
             return false;
         }
+        loadData();
         List<String> completers = questConfig.getStringList("active_quests." + questId + ".completers");
         return completers.contains(player.getName());
     }
@@ -165,17 +179,23 @@ public class QuestStorage {
     }
 
     public void addPendingReward(Player player, String questId, String rewardType) {
+        if (questId == null || rewardType == null) {
+            plugin.getLogger().warning("Попытка добавить null награду");
+            return;
+        }
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
         List<String> rewards = questConfig.getStringList(playerPath);
         if (!rewards.contains(rewardType)) {
             rewards.add(rewardType);
             questConfig.set(playerPath, rewards);
             saveData();
+            plugin.getLogger().info("Добавлена награда " + rewardType + " для игрока " + player.getName() + " за квест " + questId);
         }
     }
 
     public List<String> getPendingRewards(Player player) {
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards";
+        loadData();
         if (questConfig.getConfigurationSection(playerPath) == null) {
             return new ArrayList<>();
         }
@@ -184,6 +204,7 @@ public class QuestStorage {
 
     public List<String> getQuestRewards(Player player, String questId) {
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
+        loadData();
         return questConfig.getStringList(playerPath);
     }
 

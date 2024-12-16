@@ -1,13 +1,16 @@
 package org.vaylorm.battlePassRevive;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.vaylorm.battlePassRevive.commands.BattlePassCommand;
 import org.vaylorm.battlePassRevive.quests.ZombieQuest;
 import org.vaylorm.battlePassRevive.quests.WheatQuest;
 import org.vaylorm.battlePassRevive.managers.QuestManager;
 import org.vaylorm.battlePassRevive.storage.QuestStorage;
 
-public final class BattlePassRevive extends JavaPlugin {
+public final class BattlePassRevive extends JavaPlugin implements Listener {
     private QuestManager questManager;
     private QuestStorage questStorage;
 
@@ -31,11 +34,17 @@ public final class BattlePassRevive extends JavaPlugin {
         // Регистрация слушателей
         getServer().getPluginManager().registerEvents(zombieQuest, this);
         getServer().getPluginManager().registerEvents(wheatQuest, this);
+        getServer().getPluginManager().registerEvents(this, this); // Регистрируем основной класс как слушатель
         
         // Регистрация команд
         BattlePassCommand battlePassCommand = new BattlePassCommand(questManager, questStorage);
         getCommand("battlepass").setExecutor(battlePassCommand);
         getCommand("battlepass").setTabCompleter(battlePassCommand);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        questManager.checkAvailableQuests(event.getPlayer());
     }
 
     @Override

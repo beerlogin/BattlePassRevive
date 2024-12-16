@@ -1,5 +1,6 @@
 package org.vaylorm.battlePassRevive.managers;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.vaylorm.battlePassRevive.BattlePassRevive;
 import org.vaylorm.battlePassRevive.quests.Quest;
@@ -42,6 +43,9 @@ public class QuestManager {
     }
 
     public void initializePlayerQuests(Player player) {
+        if (player == null) {
+            return;
+        }
         UUID playerId = player.getUniqueId();
         if (!playerQuests.containsKey(playerId)) {
             Map<String, Quest> quests = new HashMap<>();
@@ -65,9 +69,6 @@ public class QuestManager {
                 storage.savePlayerQuests(player, quests);
                 plugin.getLogger().info("Игрок " + player.getName() + " активировал квест " + questId);
                 return true;
-            } else {
-                plugin.getLogger().info("Игрок " + player.getName() + " не смог активировать квест " + questId + 
-                    " (Активен: " + quest.isActive() + ", Завершен: " + quest.isCompleted() + ")");
             }
         }
         return false;
@@ -104,11 +105,47 @@ public class QuestManager {
     }
 
     public static void saveQuestProgress(Player player) {
-        if (storage != null) {
+        if (storage != null && player != null) {
             Map<String, Quest> quests = getInstance().playerQuests.get(player.getUniqueId());
             if (quests != null) {
                 storage.savePlayerQuests(player, quests);
             }
         }
+    }
+
+    public void checkAvailableQuests(Player player) {
+        initializePlayerQuests(player);
+        Map<String, Quest> quests = playerQuests.get(player.getUniqueId());
+        if (quests == null) return;
+
+        boolean hasAvailableQuests = false;
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Доступные квесты" + ChatColor.GREEN + " ═════════ ❄");
+        player.sendMessage("");
+
+        for (Map.Entry<String, Quest> entry : quests.entrySet()) {
+            String questId = entry.getKey() + "_quest";
+            Quest quest = entry.getValue();
+
+            if (storage.isQuestGloballyActive(questId) && !storage.hasPlayerCompletedGlobalQuest(questId, player)) {
+                hasAvailableQuests = true;
+                String questName = questId.equals("zombie_quest") ? "Охота на Снежных Зомби" : "Морозостойкая Пшеница";
+                String emoji = questId.equals("zombie_quest") ? "🧟" : "🌾";
+                
+                player.sendMessage(ChatColor.RED + emoji + " " + ChatColor.YELLOW + "Поздравляем! Вам доступен квест:");
+                player.sendMessage(ChatColor.WHITE + "   " + questName);
+                player.sendMessage("");
+            } else {
+                quest.setActive(false);
+                quest.resetProgress();
+            }
+        }
+
+        if (!hasAvailableQuests) {
+            player.sendMessage(ChatColor.YELLOW + "У вас нет доступных квестов");
+        }
+        
+        player.sendMessage(ChatColor.GREEN + "❄ ══════════════════════════════ ❄");
+        
+        storage.savePlayerQuests(player, quests);
     }
 } 
