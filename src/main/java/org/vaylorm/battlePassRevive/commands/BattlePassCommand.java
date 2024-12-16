@@ -392,6 +392,15 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════════════ ❄");
                 break;
 
+            case "reload":
+                if (!sender.hasPermission("battlepass.admin")) {
+                    sender.sendMessage(ChatColor.RED + "У вас нет прав для ��спользования этой команды!");
+                    return true;
+                }
+                storage.reloadStorage();
+                sender.sendMessage(ChatColor.GREEN + "Конфигурация BattlePass перезагружена!");
+                break;
+
             default:
                 sendHelp(player);
                 break;
@@ -409,7 +418,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             completions.addAll(Arrays.asList("help", "progress", "quests", "activate", "restart", "claim"));
             // Добавляем админские команды
             if (sender.hasPermission("battlepass.admin")) {
-                completions.addAll(Arrays.asList("setprogress", "global", "completers", "activequests"));
+                completions.addAll(Arrays.asList("setprogress", "global", "completers", "activequests", "reload"));
             }
             return filterCompletions(completions, args[0]);
         }
@@ -512,6 +521,8 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 ChatColor.WHITE + "- Управление списком выполнивших");
             player.sendMessage(ChatColor.RED + "⚡ " + ChatColor.RED + "/bp activequests " + 
                 ChatColor.WHITE + "- Просмотр активных квестов");
+            player.sendMessage(ChatColor.RED + "⚡ " + ChatColor.RED + "/bp reload " + 
+                ChatColor.WHITE + "- Перезагрузить конфигурацию");
         }
         
         player.sendMessage("");
@@ -534,7 +545,7 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ═════════ ❄");
+        player.sendMessage(ChatColor.GREEN + "❄ ═════════ " + ChatColor.RED + "Новогодние Квесты" + ChatColor.GREEN + " ════���════ ❄");
         player.sendMessage("");
         
         // Показываем только невыполненные квесты

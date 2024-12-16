@@ -16,6 +16,11 @@ public class WheatQuest extends Quest {
 
     @EventHandler
     public void onWheatBreak(BlockBreakEvent event) {
+        if (storage.isQuestGloballyActive(questId)) {
+            // активируем квест
+            setActive(true);
+            setCurrentProgress(0);
+        }
         if (storage == null) {
             return;
         }

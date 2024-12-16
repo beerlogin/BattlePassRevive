@@ -16,6 +16,12 @@ public class ZombieQuest extends Quest {
 
     @EventHandler
     public void onZombieKill(EntityDeathEvent event) {
+        if (storage.isQuestGloballyActive(questId)) {
+            // активируем квест
+            setActive(true);
+            setCurrentProgress(0);
+        }
+        
         if (storage == null) {
             return;
         }

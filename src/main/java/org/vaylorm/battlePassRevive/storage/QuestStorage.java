@@ -195,7 +195,6 @@ public class QuestStorage {
 
     public List<String> getPendingRewards(Player player) {
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards";
-        loadData();
         if (questConfig.getConfigurationSection(playerPath) == null) {
             return new ArrayList<>();
         }
@@ -204,7 +203,6 @@ public class QuestStorage {
 
     public List<String> getQuestRewards(Player player, String questId) {
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
-        loadData();
         return questConfig.getStringList(playerPath);
     }
 
@@ -212,5 +210,11 @@ public class QuestStorage {
         String playerPath = "players." + player.getUniqueId() + ".pending_rewards." + questId;
         questConfig.set(playerPath, null);
         saveData();
+    }
+
+    public void reloadStorage() {
+        setupStorage();
+        loadData();
+        plugin.getLogger().info("Хранилище квестов перезагружено");
     }
 } 
