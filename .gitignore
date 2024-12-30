@@ -1,14 +1,14 @@
 # IDE files
-.idea/
+.idea
 *.iml
 *.iws
 *.ipr
 
 # Compiled files
-target/
-out/
-build/
-bin/
+target
+out
+build
+bin
 *.class
 
 # Package files
@@ -20,8 +20,7 @@ bin/
 *.rar
 
 # Maven
-log/
-target/
+log
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -33,7 +32,7 @@ buildNumber.properties
 
 # Logs
 *.log
-logs/
+logs
 
 target/BattlePassRevive-1.0-SNAPSHOT.jar
 target/original-BattlePassRevive-1.0-SNAPSHOT.jar
