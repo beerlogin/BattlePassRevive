@@ -13,10 +13,7 @@ import org.vaylorm.battlePassRevive.managers.QuestManager;
 import org.vaylorm.battlePassRevive.quests.Quest;
 import org.vaylorm.battlePassRevive.storage.QuestStorage;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -315,12 +312,14 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 break;
 
             case "claimreward":
+                Set<String> validQuests = Set.of("zombie", "wheat", "mansion");
+
                 if (args.length < 2) {
                     player.sendMessage(ChatColor.RED + "Использование: /bp claimreward <id_квеста>");
                     return true;
                 }
                 String questToClaim = args[1];
-                if (!questToClaim.equals("zombie") && !questToClaim.equals("wheat")) {
+                if (!validQuests.contains(questToClaim)) {
                     player.sendMessage(ChatColor.RED + "Неверный ID квеста!");
                     return true;
                 }
@@ -388,6 +387,17 @@ public class BattlePassCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.GRAY + "   Выполнили: " + ChatColor.WHITE + wheatCompleters.size() + " игроков" + 
                     ChatColor.GRAY + " (" + String.join(", ", wheatCompleters) + ")");
                 
+                sender.sendMessage("");
+
+                TextComponent mansionStatus = new TextComponent(wheatActive ? ChatColor.GREEN + "Активен" : ChatColor.RED + "Неактивен");
+                mansionStatus.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bp global " + (wheatActive ? "deactivate" : "activate") + " wheat"));
+                mansionStatus.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(wheatActive ? "Нажмите, чтобы деактивировать" : "Нажмите, чтобы активировать")));
+                sender.spigot().sendMessage(new TextComponent(ChatColor.RED + "🌾 " + ChatColor.YELLOW + "Тёща: "), mansionStatus);
+
+                List<String> mansionCompleters = storage.getQuestCompleters("wheat_quest");
+                sender.sendMessage(ChatColor.GRAY + "   Выполнили: " + ChatColor.WHITE + mansionCompleters.size() + " игроков" +
+                        ChatColor.GRAY + " (" + String.join(", ", mansionCompleters) + ")");
+
                 sender.sendMessage("");
                 sender.sendMessage(ChatColor.GREEN + "❄ ═══════════════════════════════════ ❄");
                 break;

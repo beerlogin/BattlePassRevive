@@ -3,6 +3,7 @@ package org.vaylorm.battlePassRevive.managers;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.vaylorm.battlePassRevive.BattlePassRevive;
+import org.vaylorm.battlePassRevive.quests.MansionQuest;
 import org.vaylorm.battlePassRevive.quests.Quest;
 import org.vaylorm.battlePassRevive.quests.WheatQuest;
 import org.vaylorm.battlePassRevive.quests.ZombieQuest;
@@ -19,6 +20,7 @@ public class QuestManager {
     private final Map<UUID, Map<String, Quest>> playerQuests;
     private final ZombieQuest zombieQuest;
     private final WheatQuest wheatQuest;
+    private final MansionQuest mansionQuest;
     private static QuestManager instance;
 
     public QuestManager(BattlePassRevive plugin, QuestStorage questStorage) {
@@ -28,14 +30,17 @@ public class QuestManager {
         this.playerQuests = new HashMap<>();
         this.zombieQuest = new ZombieQuest();
         this.wheatQuest = new WheatQuest();
+        this.mansionQuest = new MansionQuest();
         
         // Устанавливаем storage для квестов
         this.zombieQuest.setStorage(questStorage);
         this.wheatQuest.setStorage(questStorage);
+        this.mansionQuest.setStorage(questStorage);
         
         // Регистрация слушателей
         plugin.getServer().getPluginManager().registerEvents(zombieQuest, plugin);
         plugin.getServer().getPluginManager().registerEvents(wheatQuest, plugin);
+        plugin.getServer().getPluginManager().registerEvents(mansionQuest, plugin);
     }
 
     private static QuestManager getInstance() {
@@ -51,6 +56,7 @@ public class QuestManager {
             Map<String, Quest> quests = new HashMap<>();
             quests.put("zombie", zombieQuest);
             quests.put("wheat", wheatQuest);
+            quests.put("mansion", mansionQuest);
             playerQuests.put(playerId, quests);
             
             plugin.getLogger().info("Инициализация квестов для игрока " + player.getName());
@@ -128,8 +134,20 @@ public class QuestManager {
 
             if (storage.isQuestGloballyActive(questId) && !storage.hasPlayerCompletedGlobalQuest(questId, player)) {
                 hasAvailableQuests = true;
-                String questName = questId.equals("zombie_quest") ? "Охота на Снежных Зомби" : "Морозостойкая Пшеница";
-                String emoji = questId.equals("zombie_quest") ? "🧟" : "🌾";
+
+                String questName = switch (questId) {
+                    case "zombie_quest" -> "Охота на Снежных Зомби";
+                    case "wheat_quest" -> "Морозостойкая Пшеница";
+                    case "mansion_quest" -> "Тёща";
+                    default -> "Неизвестное задание";
+                };
+
+                String emoji = switch (questId) {
+                    case "zombie_quest" -> "\uD83E\uDDDF";
+                    case "wheat_quest" -> "\uD83C\uDF3E";
+                    case "mansion_quest" -> "\uD83C\uDFDB️";
+                    default -> "?";
+                };
                 
                 player.sendMessage(ChatColor.RED + emoji + " " + ChatColor.YELLOW + "Поздравляем! Вам доступен квест:");
                 player.sendMessage(ChatColor.WHITE + "   " + questName);
